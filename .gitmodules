@@ -1,0 +1,3 @@
+[submodule "contrib/SerialPort"]
+	path = contrib/SerialPort
+	url = https://github.com/armadsen/ORSSerialPort
