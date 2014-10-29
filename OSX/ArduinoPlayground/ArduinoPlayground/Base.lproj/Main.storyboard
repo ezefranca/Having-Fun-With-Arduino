@@ -672,14 +672,6 @@
                         <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wFC-p8-7wZ">
-                                <rect key="frame" x="18" y="233" width="113" height="17"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Select serial port:" id="T9A-Xk-gXe">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
                             <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2BK-F1-3Fy">
                                 <rect key="frame" x="135" y="228" width="100" height="26"/>
                                 <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="5Io-w3-zp4">
@@ -692,17 +684,65 @@
                                             <menuItem title="Item 3" id="oig-vS-Tpv"/>
                                         </items>
                                     </menu>
+                                    <connections>
+                                        <binding destination="A1K-TR-Ap2" name="selectedValue" keyPath="selection" id="1yT-JU-ZtA"/>
+                                    </connections>
                                 </popUpButtonCell>
                                 <connections>
                                     <binding destination="A1K-TR-Ap2" name="content" keyPath="arrangedObjects" id="OaD-bO-0EF"/>
-                                    <binding destination="A1K-TR-Ap2" name="contentObjects" keyPath="arrangedObjects.description" previousBinding="OaD-bO-0EF" id="AMf-6Y-Sdq"/>
-                                    <binding destination="XfG-lQ-9wD" name="selectedObject" keyPath="self.selectedObject" previousBinding="AMf-6Y-Sdq" id="wEf-uE-u51"/>
+                                    <binding destination="A1K-TR-Ap2" name="contentObjects" keyPath="selection" previousBinding="OaD-bO-0EF" id="eJN-wy-Kdn"/>
+                                    <binding destination="A1K-TR-Ap2" name="contentValues" keyPath="arrangedObjects" previousBinding="eJN-wy-Kdn" id="cal-Vk-fqC"/>
+                                    <binding destination="XfG-lQ-9wD" name="selectedObject" keyPath="self.selectedObject" previousBinding="cal-Vk-fqC" id="INN-gI-m1S"/>
                                 </connections>
                             </popUpButton>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wFC-p8-7wZ">
+                                <rect key="frame" x="18" y="233" width="113" height="17"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Select serial port:" id="T9A-Xk-gXe">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZtX-OI-c2g">
+                                <rect key="frame" x="18" y="208" width="69" height="17"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Baud rate:" id="7c6-aa-5CN">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fSa-QP-XCl">
+                                <rect key="frame" x="93" y="205" width="96" height="22"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" title="115200" drawsBackground="YES" id="5mX-Zj-zQB">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="amX-iJ-krd">
+                                <rect key="frame" x="14" y="172" width="78" height="32"/>
+                                <buttonCell key="cell" type="push" title="Listen" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="1oL-sR-PSV">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="buttonPressed:" target="XfG-lQ-9wD" id="iCU-gC-Kqm"/>
+                                </connections>
+                            </button>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="BWx-dO-zBQ">
+                                <rect key="frame" x="20" y="127" width="442" height="17"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" id="Vy4-I2-sRp">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                     </view>
                     <connections>
                         <outlet property="arrayController" destination="A1K-TR-Ap2" id="oiY-8W-N3r"/>
+                        <outlet property="baudRateSelector" destination="fSa-QP-XCl" id="0d1-Mw-FXP"/>
+                        <outlet property="infoLabel" destination="BWx-dO-zBQ" id="bSw-dq-bQl"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
