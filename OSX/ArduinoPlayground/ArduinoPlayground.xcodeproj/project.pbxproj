@@ -429,6 +429,7 @@
 				EC182C4C1A006B90009DE017 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		EC182C4D1A006B90009DE017 /* Build configuration list for PBXNativeTarget "ArduinoPlaygroundTests" */ = {
 			isa = XCConfigurationList;
@@ -437,6 +438,7 @@
 				EC182C4F1A006B90009DE017 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

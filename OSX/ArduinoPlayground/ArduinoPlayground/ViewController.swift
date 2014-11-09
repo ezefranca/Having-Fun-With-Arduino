@@ -14,24 +14,26 @@ class ViewController: NSViewController , ORSSerialPortDelegate{
 
     @IBOutlet var serialPortSelector: NSPopUpButton!
     @IBOutlet var arrayController: NSArrayController!
-    @IBOutlet var selectedObject: ORSSerialPort!
     
     @IBOutlet var infoLabel: NSTextField!
     @IBOutlet var baudRateSelector: NSTextField!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        arrayController.content = ORSSerialPortManager.sharedSerialPortManager().availablePorts
+        arrayController.content = ORSSerialPortManager.sharedSerialPortManager().availablePorts as Array<ORSSerialPort>
     }
-
+    
     @IBAction func buttonPressed(sender: AnyObject) {
-        
-        selectedObject.delegate = self;
-        if let baud = baudRateSelector.stringValue.toInt() {
-            selectedObject.baudRate = baud
+        if let port = arrayController.selectedObjects[0] as? ORSSerialPort {
+            port.delegate = self;
+            if let baud = baudRateSelector.stringValue.toInt() {
+                port.baudRate = baud
+            }
+            port.open();
+            
         }
-        selectedObject.open();
-        
     }
+    
     
     func serialPort(serialPort: ORSSerialPort!, didEncounterError error: NSError!) {
         
