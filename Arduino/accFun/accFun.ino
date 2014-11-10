@@ -34,39 +34,89 @@ void dmpDataReady() {
     mpuInterrupt = true;
 }
 
-
-
 // ================================================================
-// ===                      INITIAL SETUP                       ===
+// ===                      STORAGE                             ===
 // ================================================================
 
-void setup() {
-    Wire.begin();
-    Serial.begin(115200);
-    while (!Serial); 
-    mpu.initialize();
-    Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
 
-    devStatus = mpu.dmpInitialize();
+  void i2c_eeprom_write_byte( int deviceaddress, unsigned int eeaddress, byte data ) {
+    int rdata = data;
+    Wire.beginTransmission(deviceaddress);
+    Wire.write((int)(eeaddress >> 8)); // MSB
+    Wire.write((int)(eeaddress & 0xFF)); // LSB
+    Wire.write(rdata);
+    Wire.endTransmission();
+  }
+
+  // WARNING: address is a page address, 6-bit end will wrap around
+  // also, data can be maximum of about 30 bytes, because the Wire library has a buffer of 32 bytes
+  void i2c_eeprom_write_page( int deviceaddress, unsigned int eeaddresspage, byte* data, byte length ) {
+    Wire.beginTransmission(deviceaddress);
+    Wire.write((int)(eeaddresspage >> 8)); // MSB
+    Wire.write((int)(eeaddresspage & 0xFF)); // LSB
+    byte c;
+    for ( c = 0; c < length; c++)
+      Wire.write(data[c]);
+    Wire.endTransmission();
+  }
+
+  byte i2c_eeprom_read_byte( int deviceaddress, unsigned int eeaddress ) {
+    byte rdata = 0xFF;
+    Wire.beginTransmission(deviceaddress);
+    Wire.write((int)(eeaddress >> 8)); // MSB
+    Wire.write((int)(eeaddress & 0xFF)); // LSB
+    Wire.endTransmission();
+    Wire.requestFrom(deviceaddress,1);
+    if (Wire.available()) rdata = Wire.read();
+    return rdata;
+  }
+
+  // maybe let's not read more than 30 or 32 bytes at a time!
+  void i2c_eeprom_read_buffer( int deviceaddress, unsigned int eeaddress, byte *buffer, int length ) {
+    Wire.beginTransmission(deviceaddress);
+    Wire.write((int)(eeaddress >> 8)); // MSB
+    Wire.write((int)(eeaddress & 0xFF)); // LSB
+    Wire.endTransmission();
+    Wire.requestFrom(deviceaddress,length);
+    int c = 0;
+    for ( c = 0; c < length; c++ )
+      if (Wire.available()) buffer[c] = Wire.read();
+  }
+
+
+  void writeEEPROM(String input) {
     
-    if (devStatus == 0) {
-        mpu.setDMPEnabled(true);
-        attachInterrupt(0, dmpDataReady, RISING);
-        mpuIntStatus = mpu.getIntStatus();
-        dmpReady = true;
-        packetSize = mpu.dmpGetFIFOPacketSize();
-    } else {
-        Serial.print(F("DMP Initialization failed (code "));
-        Serial.print(devStatus);
-        Serial.println(F(")"));
+    
+    char someData[input.length()];
+    int i = 0;
+    while (i = 0, i < input.length(), i++) {
+      someData[i] = input[i];
     }
-}
+    
+    i2c_eeprom_write_page(0x50, 0, (byte *)someData, sizeof(someData)); // write to EEPROM 
 
+    delay(10); //add a small delay
+
+    Serial.println("Memory written");
+  }
+
+  void readEEPROM() {
+    int addr=0; //first address
+    byte b = i2c_eeprom_read_byte(0x50, 0); // access the first address from the memory
+
+    while (b!=0) 
+    {
+      Serial.print((char)b); //print content to serial port
+      addr++; //increase address
+      b = i2c_eeprom_read_byte(0x50, addr); //access an address from the memory
+    }
+    Serial.println("fullOutput");
+
+  }
 
 // ================================================================
-// ===                    HELPERS                               ===
+// ===                      ACCELEROMETER                       ===
 // ================================================================
-
 String jsonQuaternionFromBuffer() {
   
   String returnString = "quaternion: {";
@@ -127,6 +177,21 @@ String jsonAccelerationFromBuffer() {
   returnString += ("} ");
   return returnString;
 }
+String worldAccelerationFromBuffer() {
+    String returnString = "";
+  mpu.dmpGetQuaternion(&q, fifoBuffer);
+  mpu.dmpGetAccel(&aa, fifoBuffer);
+  mpu.dmpGetGravity(&gravity, &q);
+  mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
+  mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
+  returnString += (aaWorld.x);
+  returnString += (",");
+  returnString += (aaWorld.y);
+  returnString += (",");
+  returnString += (aaWorld.z);
+  returnString += ("|");
+  return returnString;
+}
 
 String jsonWorldAccelerationFromBuffer() {
   String returnString = "worldAcceleration: {";
@@ -145,15 +210,30 @@ String jsonWorldAccelerationFromBuffer() {
   return returnString;
 }
 
-void sendToOutput(String input) {
-  Serial.print(input);
+void setupAccelerometer() {
+
+    while (!Serial); 
+    mpu.initialize();
+    Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+
+    devStatus = mpu.dmpInitialize();
+    
+    if (devStatus == 0) {
+        mpu.setDMPEnabled(true);
+        attachInterrupt(0, dmpDataReady, RISING);
+        mpuIntStatus = mpu.getIntStatus();
+        dmpReady = true;
+        packetSize = mpu.dmpGetFIFOPacketSize();
+    } else {
+        Serial.print(F("DMP Initialization failed (code "));
+        Serial.print(devStatus);
+        Serial.println(F(")"));
+    }
+
 }
 
-// ================================================================
-// ===                    MAIN PROGRAM LOOP                     ===
-// ================================================================
+void loopAccelerometer(){
 
-void loop() {
     if (!dmpReady) return;
     while (!mpuInterrupt && fifoCount < packetSize) {
         // other program behavior stuff here
@@ -172,9 +252,81 @@ void loop() {
        // Serial.print(jsonEulerFromBuffer());  
        // Serial.print(jsonYawPitchRollFromBuffer());
        // Serial.print(jsonAccelerationFromBuffer());
-        sendToOutput(jsonWorldAccelerationFromBuffer());
+        sendToOutput(worldAccelerationFromBuffer());
     }
 }
 
+// ================================================================
+// ===                     SETUP CONTROLS                       ===
+// ================================================================
 
+int ledPin = 13; 
+int readData = 5; 
+int writeData = 6;
+int clearData = 7;
+
+void setupControls(){
+  pinMode(readData, INPUT);   
+  pinMode(writeData, INPUT);  
+  pinMode(clearData, INPUT);     
+  pinMode(ledPin, OUTPUT);
+}
+
+// ================================================================
+// ===                      INITIAL SETUP                       ===
+// ================================================================
+
+boolean readOutput;
+void setup() {
+  setupControls();
+  Wire.begin();
+  Serial.begin(115200);
+  if(digitalRead(writeData)) {
+     setupAccelerometer();
+    flash(2);
+  } else if(digitalRead(readData)) {
+    readOutput = false;
+    flash(3);
+  } else if(digitalRead(clearData)) {
+    flash(4);
+  } else {
+    flash(5);
+  }
+}
+
+// ================================================================
+// ===                    MAIN PROGRAM LOOP                     ===
+// ================================================================
+void loop() {
+  
+  if(digitalRead(writeData)) {
+    loopAccelerometer();
+  } else if(digitalRead(readData)) {
+    if (!readOutput) {
+      readEEPROM();
+      readOutput = true;
+    }
+  } else if(digitalRead(clearData)) {
+  
+  }
+}
+
+// ================================================================
+// ===                    HELPERS                               ===
+// ================================================================
+
+void sendToOutput(String input) {
+  //Serial.println(input);
+  writeEEPROM(input);
+}
+
+void flash(int times) {
+   while (times > 0) {
+      digitalWrite(ledPin, HIGH);   // turn the LED on (HIGH is the voltage level)
+      delay(1000); 
+      digitalWrite(ledPin, LOW);   // turn the LED on (HIGH is the voltage level)
+      delay(1000); 
+      times--;
+   }  
+}  
 
